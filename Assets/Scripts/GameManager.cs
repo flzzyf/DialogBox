@@ -14,23 +14,44 @@ public class GameManager : MonoBehaviour
         if (Input.GetKeyDown("d"))
         {
             textBox.StopShowText();
-            textBox.ShowText(s, TextBoxAlignment.Center);
+
+            TextBoxStyle style = new TextBoxStyle
+            {
+                fontSize = 10,
+                alignment = TextBoxAlignment.Center,
+            };
+            textBox.ShowText(s, style);
         }
         if (Input.GetKeyDown("f"))
         {
             textBox.StopShowText();
-            textBox.ShowText(s, TextBoxAlignment.Center, 0);
+
+            TextBoxStyle style = new TextBoxStyle
+            {
+                fontSize = 10,
+                alignment = TextBoxAlignment.Center,
+                playSpeedPerChar = 0,
+            };
+            textBox.ShowText(s, style);
         }
 
         if (Input.GetKeyDown("e"))
         {
             textBox.StopShowText();
+
             textBox.ShowText(s2);
         }
         if (Input.GetKeyDown("r"))
         {
             textBox.StopShowText();
-            textBox.ShowText(s2, TextBoxAlignment.Left, 0);
+
+            TextBoxStyle style = new TextBoxStyle
+            {
+                fontSize = 10,
+                alignment = TextBoxAlignment.Left,
+                playSpeedPerChar = 0,
+            };
+            textBox.ShowText(s2, style);
         }
 
         if (Input.GetKeyDown("g"))

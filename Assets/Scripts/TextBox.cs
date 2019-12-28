@@ -5,18 +5,38 @@ using UnityEngine.UI;
 
 public enum TextBoxAlignment { Left, Center}
 
+//文本框样式
+public class TextBoxStyle
+{
+    public int fontSize = 6;
+    public TextBoxAlignment alignment;
+
+    //是否淡入淡出以及相应时长
+    public bool fadeIn;
+    public bool fadeOut;
+    public float fadeInDuration = .5f;
+    public float fadeOutDuration = .7f;
+
+    //淡入和淡出时的位移
+    public float fadeInOffset;
+    public float fadeOutOffset;
+
+    //文本播放速度（每个字符时间）
+    public float playSpeedPerChar = .01f;
+}
+
 //对话框，文本会有个背景。目前只有左对齐的文本能显示文本打出效果，居中的只能立即显示
 public class TextBox : MonoBehaviour
 {
     public Text text;
     public Transform textBGParent;
 
-    //每个字符播放间隔
-    public float defaultDurationPerChar = .01f;
-
     IEnumerator setTextCor;
 
+    //文本背景块列表
     List<GameObject> textBGList;
+
+    CanvasGroup canvasGroup;
 
     #region Unity回调
 
@@ -27,48 +47,30 @@ public class TextBox : MonoBehaviour
         SimpleObjectPool.instance.NewPool("TextBG", prefab_TextBG, 5, new GameObject("TextBGParent").transform);
 
         textBGList = new List<GameObject>();
+
+        canvasGroup = GetComponent<CanvasGroup>();
     }
 
     #endregion
 
+    #region 方法
+
     //打出显示文本
-    public void ShowText(string str, TextBoxAlignment alignment = default, float durationPerChar = -1)
+    public void ShowText(string str, TextBoxStyle style = null)
     {
-        setTextCor = SetTextCor(str, alignment, durationPerChar);
+        //样式设置
+        if(style == null)
+        {
+            style = new TextBoxStyle();
+        }
+        text.fontSize = style.fontSize;
+
+        setTextCor = SetTextCor(str, style);
         StartCoroutine(setTextCor);
     }
-
-    //停止显示文本
-    public void StopShowText()
-    {
-        if(setTextCor != null)
-            StopCoroutine(setTextCor);
-
-        ClearText();
-    }
-
-    //清除文本，回收组件
-    public void ClearText()
+    IEnumerator SetTextCor(string str, TextBoxStyle style)
     {
         text.text = "";
-
-        //回收文本背景
-        foreach (var item in textBGList)
-        {
-            SimpleObjectPool.instance.PutBackObject("TextBG", item);
-        }
-        textBGList = new List<GameObject>();
-    }
-
-    IEnumerator SetTextCor(string str, TextBoxAlignment alignment, float durationPerChar = -1)
-    {
-        text.text = "";
-
-        //设置默认播放速度
-        if (durationPerChar == -1)
-        {
-            durationPerChar = defaultDurationPerChar;
-        }
 
         //设置文本框尺寸
         Vector2 size = GetStringSizeInText(str, text);
@@ -89,32 +91,34 @@ public class TextBox : MonoBehaviour
                 text.text += "\n";
             }
 
+            //这行文本的尺寸
             Vector2 lineSize = GetStringSizeInText(lineStr, text);
 
-            //如果是居中，添加空格
-            if(alignment == TextBoxAlignment.Center)
+            //如果是居中
+            if (style.alignment == TextBoxAlignment.Center)
             {
-                //为了居中应该添加的空格数量
-                int spaceCount = Mathf.CeilToInt ((size.x - lineSize.x) / 2 / GetCharSizeInText(' ', text).x);
+                //如果是居中，添加空格
+                int spaceCount = Mathf.CeilToInt((size.x - lineSize.x) / 2 / GetCharSizeInText(' ', text).x);
                 for (int i = 0; i < spaceCount; i++)
                 {
                     text.text += " ";
                 }
-            }
 
-            //获取这行文本的左上角坐标
-            //如果是居中
-            if (alignment == TextBoxAlignment.Center)
-            {
+                //文本背景偏移
+                float bgOffsetX = GetCharSizeInText(' ', text).x * spaceCount - Mathf.CeilToInt((size.x - lineSize.x) / 2);
+
+                //获取这行文本的左上角坐标
                 startingPos.x = -lineSize.x / 2;
+                startingPos.x += bgOffsetX;
             }
             else
             {
+                //获取这行文本的左上角坐标
                 startingPos.x = -size.x / 2;
             }
 
             //如果是瞬间显示
-            if (durationPerChar == 0)
+            if (style.playSpeedPerChar == 0)
             {
                 text.text += lineStr;
 
@@ -126,21 +130,22 @@ public class TextBox : MonoBehaviour
                 //慢慢打出
                 Vector2 firstCharSize = GetCharSizeInText(lineStr[0], text);
 
+                //创建文本背景
                 Vector2 lineStartingPos = startingPos;
-                lineStartingPos.x += firstCharSize.x / 2;
                 lineStartingPos.y -= firstCharSize.y / 2;
 
                 foreach (var ch in lineStr)
                 {
                     text.text += ch;
 
-                    //生成文本背景
                     Vector2 charSize = GetCharSizeInText(ch, text);
-                    GenerateTextBG(lineStartingPos, charSize);
-
                     lineStartingPos.x += charSize.x;
+                    Vector2 bgPos = new Vector2(lineStartingPos.x - charSize.x / 2, lineStartingPos.y);
 
-                    yield return new WaitForSeconds(durationPerChar);
+                    //生成文本背景
+                    GenerateTextBG(bgPos, charSize);
+
+                    yield return new WaitForSeconds(style.playSpeedPerChar);
                 }
             }
 
@@ -148,20 +153,43 @@ public class TextBox : MonoBehaviour
         }
     }
 
+    //停止显示文本
+    public void StopShowText()
+    {
+        if (setTextCor != null)
+            StopCoroutine(setTextCor);
+
+        ClearText();
+    }
+
+    //清除文本，回收组件
+    public void ClearText()
+    {
+        text.text = "";
+
+        //回收文本背景
+        foreach (var item in textBGList)
+        {
+            SimpleObjectPool.instance.PutBackObject("TextBG", item);
+        }
+        textBGList = new List<GameObject>();
+    }
+
     //生成一行文本的背景，初始位置为文本左上角
     void GenerateLineTextBG(Vector2 startingPos, string str)
     {
         Vector2 firstCharSize = GetCharSizeInText(str[0], text);
 
-        startingPos.x += firstCharSize.x / 2;
         startingPos.y -= firstCharSize.y / 2;
 
-        foreach (var ch in str)
+        for (int i = 0; i < str.Length; i++)
         {
-            Vector2 charSize = GetCharSizeInText(ch, text);
-            GenerateTextBG(startingPos, charSize);
+            Vector2 charSize = GetCharSizeInText(str[i], text);
 
             startingPos.x += charSize.x;
+
+            Vector2 bgPos = new Vector2(startingPos.x - charSize.x / 2, startingPos.y);
+            GenerateTextBG(bgPos, charSize);
         }
     }
 
@@ -178,6 +206,13 @@ public class TextBox : MonoBehaviour
 
         textBG.GetComponent<RectTransform>().sizeDelta = size;
     }
+
+    #region 渐变
+
+
+    #endregion
+
+    #endregion
 
     #region 帮助方法
 

@@ -154,8 +154,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 45.05002}
-  m_SizeDelta: {x: 0, y: -90.1}
+  m_AnchoredPosition: {x: 0, y: -45.48}
+  m_SizeDelta: {x: 0, y: -90.96}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &620181529
 MonoBehaviour:
@@ -170,7 +170,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.15294118}
+  m_Color: {r: 0, g: 0, b: 0, a: 1}
   m_RaycastTarget: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -195,6 +195,12 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 620181527}
   m_CullTransparentMesh: 0
+--- !u!1 &896450449 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8605778376517495905, guid: d82d148bba5340c4ba487c87eb071d3a,
+    type: 3}
+  m_PrefabInstance: {fileID: 8605778377279706096}
+  m_PrefabAsset: {fileID: 0}
 --- !u!224 &896450450 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8605778376517495906, guid: d82d148bba5340c4ba487c87eb071d3a,
@@ -207,12 +213,24 @@ MonoBehaviour:
     type: 3}
   m_PrefabInstance: {fileID: 8605778377279706096}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 896450449}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 65d8e4e13689540e79d2547040f2c35a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!225 &896450452
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 896450449}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1235098821
 GameObject:
   m_ObjectHideFlags: 0
@@ -451,7 +469,7 @@ Camera:
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
-  m_BackGroundColor: {r: 0.3773585, g: 0.3773585, b: 0.3773585, a: 0}
+  m_BackGroundColor: {r: 0.254717, g: 0.254717, b: 0.254717, a: 0}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
