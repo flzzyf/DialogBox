@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8605778376517495906}
   - component: {fileID: 8605778376517495907}
+  - component: {fileID: 896450452}
   m_Layer: 5
   m_Name: TextBox
   m_TagString: Untagged
@@ -52,7 +53,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   text: {fileID: 8605778376782057120}
   textBGParent: {fileID: 8605778377324833163}
-  defaultDurationPerChar: 0.01
+--- !u!225 &896450452
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8605778376517495905}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &8605778376782057150
 GameObject:
   m_ObjectHideFlags: 0

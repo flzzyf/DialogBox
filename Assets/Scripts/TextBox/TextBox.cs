@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using DG.Tweening;
+using System;
 
 public enum TextBoxAlignment { Left, Center}
 
@@ -14,10 +16,10 @@ public class TextBoxStyle
     //是否淡入淡出以及相应时长
     public bool fadeIn;
     public bool fadeOut;
-    public float fadeInDuration = .5f;
+    public float fadeInDuration = .8f;
     public float fadeOutDuration = .7f;
 
-    //淡入和淡出时的位移
+    //淡入和淡出时的位移，单位是该Text行高
     public float fadeInOffset;
     public float fadeOutOffset;
 
@@ -37,18 +39,20 @@ public class TextBox : MonoBehaviour
     List<GameObject> textBGList;
 
     CanvasGroup canvasGroup;
+    Outline textOutline;
+    RectTransform rect;
+
+    TextBoxStyle style;
 
     #region Unity回调
 
     void Awake()
     {
-        GameObject prefab_TextBG = Resources.Load("Prefabs/TextBG") as GameObject;
-
-        SimpleObjectPool.instance.NewPool("TextBG", prefab_TextBG, 5, new GameObject("TextBGParent").transform);
-
         textBGList = new List<GameObject>();
 
         canvasGroup = GetComponent<CanvasGroup>();
+        textOutline = text.GetComponent<Outline>();
+        rect = GetComponent<RectTransform>();
     }
 
     #endregion
@@ -63,7 +67,17 @@ public class TextBox : MonoBehaviour
         {
             style = new TextBoxStyle();
         }
+
+        this.style = style;
+
+        //设置字体大小
         text.fontSize = style.fontSize;
+
+        //如果淡入
+        if(style.fadeIn)
+        {
+            FadeIn();
+        }
 
         setTextCor = SetTextCor(str, style);
         StartCoroutine(setTextCor);
@@ -153,6 +167,29 @@ public class TextBox : MonoBehaviour
         }
     }
 
+    //隐藏文本
+    public void HideText(Action onComplete = null)
+    {
+        Action action = () =>
+        {
+            onComplete?.Invoke();
+
+            ClearText();
+        };
+
+        if (style.fadeOut)
+        {
+            FadeOut(() =>
+            {
+                action();
+            });
+        }
+        else
+        {
+            action();
+        }
+    }
+
     //停止显示文本
     public void StopShowText()
     {
@@ -174,6 +211,31 @@ public class TextBox : MonoBehaviour
         }
         textBGList = new List<GameObject>();
     }
+
+    //附着到游戏物体上
+    public void AttachToGameObject(GameObject target)
+    {
+        StartCoroutine(MoveToGameObject(target));
+    }
+    //一直移动到游戏物体位置
+    IEnumerator MoveToGameObject(GameObject target)
+    {
+        while(target != null)
+        {
+            Vector2 pos = Camera.main.WorldToScreenPoint(target.transform.position);
+
+            transform.position = pos;
+
+            yield return new WaitForFixedUpdate();
+        }
+    }
+
+    public void SetPos(Vector2 pos)
+    {
+        transform.position = pos;
+    }
+
+    #region 生成文字背景块
 
     //生成一行文本的背景，初始位置为文本左上角
     void GenerateLineTextBG(Vector2 startingPos, string str)
@@ -207,8 +269,54 @@ public class TextBox : MonoBehaviour
         textBG.GetComponent<RectTransform>().sizeDelta = size;
     }
 
+    #endregion
+
     #region 渐变
 
+    void FadeIn()
+    {
+        canvasGroup.DOKill();
+        canvasGroup.DOFade(0, 0);
+        canvasGroup.DOFade(1, style.fadeInDuration);
+
+        textOutline.DOKill();
+        textOutline.DOFade(0, 0);
+        textOutline.DOFade(1, style.fadeInDuration);
+
+        //位移
+        if (style.fadeInOffset != default)
+        {
+            float originY = rect.anchoredPosition.y;
+            rect.DOKill();
+
+            Vector2 pos = rect.anchoredPosition;
+            pos.y = rect.anchoredPosition.y - style.fontSize * style.fadeInOffset;
+            rect.anchoredPosition = pos;
+
+            rect.DOAnchorPosY(originY, style.fadeInDuration);
+        }
+    }
+
+    void FadeOut(Action onComplete = null)
+    {
+        canvasGroup.DOKill();
+        canvasGroup.DOFade(1, 0);
+        canvasGroup.DOFade(0, style.fadeInDuration).OnComplete(() =>
+        {
+            onComplete?.Invoke();
+        });
+
+        textOutline.DOKill();
+        textOutline.DOFade(1, 0);
+        textOutline.DOFade(0, style.fadeInDuration);
+
+        //位移
+        if (style.fadeInOffset != default)
+        {
+            rect.DOKill();
+            rect.DOAnchorPosY(rect.anchoredPosition.y + style.fontSize * style.fadeInOffset, style.fadeOutDuration);
+        }
+    }
 
     #endregion
 

@@ -7,20 +7,23 @@ public class GameManager : MonoBehaviour
     string s = "蔷薇asz123xcz\n阿萨德qwe2424wqeq\nasdasdasqwewqeq123123weasdda";
     string s2 = "蔷薇asz123xcz\n阿萨德qwe2424wqeq\nasdasdasqwewqeq123123weasdda\nasdaswqeq123123weasdda";
 
-    public TextBox textBox;
+    TextBox textBox;
 
     void Update()
     {
         if (Input.GetKeyDown("d"))
         {
-            textBox.StopShowText();
-
             TextBoxStyle style = new TextBoxStyle
             {
                 fontSize = 10,
                 alignment = TextBoxAlignment.Center,
+                fadeIn = true,
+                fadeInOffset = 3,
+                fadeOut = true,
+                fadeOutOffset = 3,
             };
-            textBox.ShowText(s, style);
+
+            textBox = TextBoxManager.instance.CreateTextBox(Vector2.one, "qwe", style);
         }
         if (Input.GetKeyDown("f"))
         {
@@ -56,7 +59,7 @@ public class GameManager : MonoBehaviour
 
         if (Input.GetKeyDown("g"))
         {
-            textBox.ClearText();
+            textBox.HideText();
         }
     }
 
