@@ -262,22 +262,29 @@ public class TextBox : MonoBehaviour
         style.playSpeedPerChar = 0;
     }
 
+    IEnumerator moveToGameObjectCor;
+
     //附着到游戏物体上
     public void AttachToGameObject(GameObject target)
     {
-        StartCoroutine(MoveToGameObject(target));
+        moveToGameObjectCor = MoveToGameObject(target);
+        StartCoroutine(moveToGameObjectCor);
     }
     //一直移动到游戏物体位置
     IEnumerator MoveToGameObject(GameObject target)
     {
-        while(target != null)
+        while (target != null)
         {
-            Vector2 pos = Camera.main.WorldToScreenPoint(target.transform.position);
+            Vector2 pos = Camera.main.WorldToViewportPoint (target.transform.position);
 
-            transform.position = pos;
+            GetComponent<RectTransform>().anchoredPosition = pos;
 
             yield return new WaitForFixedUpdate();
         }
+    }
+    public void StopAttachToGameObject()
+    {
+        StopCoroutine(moveToGameObjectCor);
     }
 
     public void SetPos(Vector2 pos)

@@ -10,6 +10,8 @@ public class GameManager : MonoBehaviour
 
     public static System.Action onClick;
 
+    public GameObject target;
+
     void Update()
     {
         if (Input.GetKeyDown("f"))
@@ -31,6 +33,8 @@ public class GameManager : MonoBehaviour
             });
 
             lastTextBox.ShowText(s);
+
+            lastTextBox.AttachToGameObject(target);
         }
         if (Input.GetKeyDown("g"))
         {
