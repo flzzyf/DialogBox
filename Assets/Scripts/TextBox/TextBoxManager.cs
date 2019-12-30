@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class TextBoxManager : Singleton<TextBoxManager>
 {
-    TextBox lastTextBox;
-
     Canvas canvas;
 
     void Awake()
@@ -20,16 +18,19 @@ public class TextBoxManager : Singleton<TextBoxManager>
     }
 
     //创建文本框
-    public TextBox CreateTextBox(Vector2 worldPos, string str, TextBoxStyle style = null)
+    public TextBox CreateTextBox(Vector2 worldPos)
     {
-        lastTextBox = SimpleObjectPool.instance.SpawnFromPool("TextBox").GetComponent<TextBox>();
-        lastTextBox.transform.SetParent(canvas.transform);
-        lastTextBox.transform.localScale = Vector3.one;
+        TextBox textBox = SimpleObjectPool.instance.SpawnFromPool("TextBox").GetComponent<TextBox>();
+        textBox.transform.SetParent(canvas.transform);
+        textBox.transform.localScale = Vector3.one;
 
-        lastTextBox.ShowText(str, style);
+        textBox.SetPos(worldPos);
 
-        lastTextBox.SetPos(worldPos);
+        textBox.AddOnHideCallback(() =>
+        {
+            SimpleObjectPool.instance.PutBackObject("TextBox", textBox.gameObject);
+        });
 
-        return lastTextBox;
+        return textBox;
     }
 }

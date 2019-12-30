@@ -6,12 +6,22 @@ using DG.Tweening;
 using System;
 
 public enum TextBoxAlignment { Left, Center}
+public enum TextBoxFadeOutMethod { Null, OnClick, DelayTime}
 
 //文本框样式
 public class TextBoxStyle
 {
     public int fontSize = 6;
+
+    //靠左或者居中对齐
     public TextBoxAlignment alignment;
+
+    //文本和文本背景的颜色，默认黑底白字
+    public Color textColor = Color.white;
+    public Color textBGColor = Color.black;
+
+    //文本播放速度（每个字符时间）
+    public float playSpeedPerChar = .01f;
 
     //是否淡入淡出以及相应时长
     public bool fadeIn;
@@ -23,8 +33,10 @@ public class TextBoxStyle
     public float fadeInOffset;
     public float fadeOutOffset;
 
-    //文本播放速度（每个字符时间）
-    public float playSpeedPerChar = .01f;
+    //淡出方式
+    public TextBoxFadeOutMethod textBoxFadeOutMethod;
+    //淡入完成后，自动淡出延迟时间
+    public float fadeOutDelayTime = 1;
 }
 
 //对话框，文本会有个背景。目前只有左对齐的文本能显示文本打出效果，居中的只能立即显示
@@ -44,6 +56,12 @@ public class TextBox : MonoBehaviour
 
     TextBoxStyle style;
 
+    //被隐藏或者淡出结束
+    Action onHide;
+
+    //文本播放完成
+    Action onShowComplete;
+
     #region Unity回调
 
     void Awake()
@@ -60,18 +78,38 @@ public class TextBox : MonoBehaviour
     #region 方法
 
     //打出显示文本
-    public void ShowText(string str, TextBoxStyle style = null)
+    public void ShowText(string str)
     {
-        //样式设置
+        //如果没有输入样式，设置一个默认的
         if(style == null)
         {
             style = new TextBoxStyle();
         }
 
-        this.style = style;
-
         //设置字体大小
         text.fontSize = style.fontSize;
+
+        //设置颜色
+        text.color = style.textColor;
+        textOutline.effectColor = style.textColor;
+
+        //如果是点击淡出的样式，注册点击事件
+        if (style.textBoxFadeOutMethod == TextBoxFadeOutMethod.OnClick)
+        {
+            GameManager.onClick += () =>
+            {
+                HideText();
+            };
+        }
+        else if(style.textBoxFadeOutMethod == TextBoxFadeOutMethod.DelayTime)
+        {
+            onShowComplete += () =>
+            {
+                StartCoroutine(DelayHideCor(style.fadeOutDelayTime));
+
+                onShowComplete = null;
+            };
+        }
 
         //如果淡入
         if(style.fadeIn)
@@ -79,10 +117,10 @@ public class TextBox : MonoBehaviour
             FadeIn();
         }
 
-        setTextCor = SetTextCor(str, style);
+        setTextCor = SetTextCor(str);
         StartCoroutine(setTextCor);
     }
-    IEnumerator SetTextCor(string str, TextBoxStyle style)
+    IEnumerator SetTextCor(string str)
     {
         text.text = "";
 
@@ -165,16 +203,22 @@ public class TextBox : MonoBehaviour
 
             startingPos.y -= lineSize.y * text.lineSpacing;
         }
+
+        //播放完成
+        onShowComplete?.Invoke();
     }
 
     //隐藏文本
     public void HideText(Action onComplete = null)
     {
+        //隐藏完成后进行的动作
         Action action = () =>
         {
             onComplete?.Invoke();
 
             ClearText();
+
+            onHide?.Invoke();
         };
 
         if (style.fadeOut)
@@ -212,6 +256,12 @@ public class TextBox : MonoBehaviour
         textBGList = new List<GameObject>();
     }
 
+    //立即完成当前文本的显示
+    public void ShowCurrentTextImmediately()
+    {
+        style.playSpeedPerChar = 0;
+    }
+
     //附着到游戏物体上
     public void AttachToGameObject(GameObject target)
     {
@@ -233,6 +283,28 @@ public class TextBox : MonoBehaviour
     public void SetPos(Vector2 pos)
     {
         transform.position = pos;
+    }
+
+    public void SetStyle(TextBoxStyle style)
+    {
+        this.style = style;
+    }
+
+    public void AddOnHideCallback(Action onHide)
+    {
+        this.onHide = () =>
+        {
+            onHide?.Invoke();
+
+            onHide = null;
+        };
+    }
+
+    IEnumerator DelayHideCor(float delayTime)
+    {
+        yield return new WaitForSeconds(delayTime);
+
+        HideText();
     }
 
     #region 生成文字背景块
@@ -267,6 +339,9 @@ public class TextBox : MonoBehaviour
         textBG.GetComponent<RectTransform>().anchoredPosition = new Vector3(pos.x, pos.y, 0);
 
         textBG.GetComponent<RectTransform>().sizeDelta = size;
+
+        //设置背景块颜色
+        textBG.GetComponentInChildren<Image>().color = style.textBGColor;
     }
 
     #endregion
@@ -276,11 +351,13 @@ public class TextBox : MonoBehaviour
     void FadeIn()
     {
         canvasGroup.DOKill();
-        canvasGroup.DOFade(0, 0);
+        canvasGroup.alpha = 0;
         canvasGroup.DOFade(1, style.fadeInDuration);
 
         textOutline.DOKill();
-        textOutline.DOFade(0, 0);
+        Color outlineColor = textOutline.effectColor;
+        outlineColor.a = 0;
+        textOutline.effectColor = outlineColor;
         textOutline.DOFade(1, style.fadeInDuration);
 
         //位移
@@ -289,6 +366,7 @@ public class TextBox : MonoBehaviour
             float originY = rect.anchoredPosition.y;
             rect.DOKill();
 
+            //设置初始位置
             Vector2 pos = rect.anchoredPosition;
             pos.y = rect.anchoredPosition.y - style.fontSize * style.fadeInOffset;
             rect.anchoredPosition = pos;

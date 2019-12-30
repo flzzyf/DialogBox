@@ -5,15 +5,17 @@ using UnityEngine;
 public class GameManager : MonoBehaviour
 {
     string s = "蔷薇asz123xcz\n阿萨德qwe2424wqeq\nasdasdasqwewqeq123123weasdda";
-    string s2 = "蔷薇asz123xcz\n阿萨德qwe2424wqeq\nasdasdasqwewqeq123123weasdda\nasdaswqeq123123weasdda";
 
-    TextBox textBox;
+    TextBox lastTextBox;
+
+    public static System.Action onClick;
 
     void Update()
     {
-        if (Input.GetKeyDown("d"))
+        if (Input.GetKeyDown("f"))
         {
-            TextBoxStyle style = new TextBoxStyle
+            lastTextBox = TextBoxManager.instance.CreateTextBox(Vector2.one);
+            lastTextBox.SetStyle(new TextBoxStyle
             {
                 fontSize = 10,
                 alignment = TextBoxAlignment.Center,
@@ -21,45 +23,82 @@ public class GameManager : MonoBehaviour
                 fadeInOffset = 3,
                 fadeOut = true,
                 fadeOutOffset = 3,
-            };
 
-            textBox = TextBoxManager.instance.CreateTextBox(Vector2.one, "qwe", style);
+                textColor = Color.red,
+                textBGColor = Color.green,
+
+                textBoxFadeOutMethod = TextBoxFadeOutMethod.OnClick,
+            });
+
+            lastTextBox.ShowText(s);
         }
-        if (Input.GetKeyDown("f"))
+        if (Input.GetKeyDown("g"))
         {
-            textBox.StopShowText();
-
-            TextBoxStyle style = new TextBoxStyle
+            lastTextBox = TextBoxManager.instance.CreateTextBox(Vector2.one);
+            lastTextBox.SetStyle(new TextBoxStyle
             {
                 fontSize = 10,
                 alignment = TextBoxAlignment.Center,
+                fadeIn = true,
+                fadeInOffset = 3,
+                fadeOut = true,
+                fadeOutOffset = 3,
                 playSpeedPerChar = 0,
-            };
-            textBox.ShowText(s, style);
-        }
 
+                textColor = Color.black,
+                textBGColor = Color.white,
+
+                textBoxFadeOutMethod = TextBoxFadeOutMethod.DelayTime,
+                fadeOutDelayTime = 1,
+            });
+
+            lastTextBox.ShowText(s);
+        }
         if (Input.GetKeyDown("e"))
         {
-            textBox.StopShowText();
-
-            textBox.ShowText(s2);
-        }
-        if (Input.GetKeyDown("r"))
-        {
-            textBox.StopShowText();
-
-            TextBoxStyle style = new TextBoxStyle
+            lastTextBox = TextBoxManager.instance.CreateTextBox(Vector2.one);
+            lastTextBox.SetStyle(new TextBoxStyle
             {
                 fontSize = 10,
                 alignment = TextBoxAlignment.Left,
+                fadeIn = true,
+                fadeInOffset = 3,
+                fadeOut = true,
+                fadeOutOffset = 3,
                 playSpeedPerChar = 0,
-            };
-            textBox.ShowText(s2, style);
+                textBoxFadeOutMethod = TextBoxFadeOutMethod.OnClick,
+            });
+
+            lastTextBox.ShowText(s);
+        }
+        if (Input.GetKeyDown("r"))
+        {
+            lastTextBox = TextBoxManager.instance.CreateTextBox(Vector2.one);
+            lastTextBox.SetStyle(new TextBoxStyle
+            {
+                fontSize = 10,
+                alignment = TextBoxAlignment.Left,
+                fadeIn = true,
+                fadeInOffset = 3,
+                fadeOut = true,
+                fadeOutOffset = 3,
+                playSpeedPerChar = 0,
+            });
+
+            lastTextBox.ShowText(s);
         }
 
-        if (Input.GetKeyDown("g"))
+        if (Input.GetKeyDown("t"))
         {
-            textBox.HideText();
+            lastTextBox.HideText();
+            //textBox.ShowCurrentTextImmediately();
+        }
+
+        if(Input.GetMouseButtonDown(0))
+        {
+            onClick?.Invoke();
+
+            onClick = null;
         }
     }
 
